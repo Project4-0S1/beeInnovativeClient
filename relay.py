@@ -3,8 +3,8 @@ import time
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
 # Setup
+print("RELAY_GPIO:", os.getenv('RELAY_GPIO'))
 
 def switchRelay(targetState):
     GPIO.setmode(GPIO.BCM)
@@ -19,5 +19,4 @@ def switchRelay(targetState):
     GPIO.output(int(os.getenv('RELAY_GPIO')), targetState)
 
 
-
-
+switchRelay(True)
