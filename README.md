@@ -1,3 +1,10 @@
+# Bee Innovative Client App
+This application is the client that runs the AI detections and connects to the server.
+
+The client app is stored in /opt/beeInnovativeCLient
+Run the client app by running the following command:
+```python3 /opt/beeInnovativeClient/app.py```
+
 # Branching Strategy for Web App, API Development and Client
 
 ## Overview
