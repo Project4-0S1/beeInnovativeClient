@@ -1,5 +1,9 @@
 from functions import *
 
 # Report the device information to the server
-reportDevice()
-switchRelay(True)
+# reportBeehive()
+# switchRelay(True)
+
+saveHornetDetection(1
+                    ,0);
+
