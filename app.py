@@ -1,9 +1,11 @@
 from functions import *
+from auth import *
 
 # Report the device information to the server
-# reportBeehive()
+reportBeehive()
 # switchRelay(True)
 
-saveHornetDetection(1
-                    ,0);
+# saveHornetDetection(1 ,0);
+
+# print(get_access_token())
 
