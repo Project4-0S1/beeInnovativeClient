@@ -1,2 +1,5 @@
 .env
 token.json
+AI/
+database.db
+client/
