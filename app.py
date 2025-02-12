@@ -11,7 +11,7 @@ from ultralytics import YOLO
 reportBeehive()
 
 # Load YOLO model (optimized for Raspberry Pi)
-model = YOLO('yolov11_custom8_640.onnx')  # Change to your model
+model = YOLO('/opt/beeInnovativeClient/yolov11_custom8_640.onnx')  # Change to your model
 
 # Open camera
 cap = cv2.VideoCapture(0)  # Use 0 for USB cam, change if needed
