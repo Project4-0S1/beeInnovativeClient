@@ -6,18 +6,43 @@ import math
 import time
 import csv
 from ultralytics import YOLO
+import os
+import RPi.GPIO as GPIO
+
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv('/opt/beeInnovativeClient/.env')
+
+# Get ALERT_GPIO pin from .env file
+ALERT_GPIO = int(os.getenv('ALERT_GPIO', 25))
+
+# Setup GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(ALERT_GPIO, GPIO.OUT)
+
+def flash_light(duration=4):
+    GPIO.output(ALERT_GPIO, GPIO.HIGH)
+    time.sleep(duration)
+    GPIO.output(ALERT_GPIO, GPIO.LOW)
 
 # Report the device information to the server
 reportBeehive()
 
 # Load YOLO model (optimized for Raspberry Pi)
-model = YOLO('yolov11_custom8_640.onnx')  # Change to your model
+model = YOLO('/opt/beeInnovativeClient/yolov11_custom8_640.onnx')  # Change to your model
 
 # Open camera
 cap = cv2.VideoCapture(0)  # Use 0 for USB cam, change if needed
 
+# Check if the camera stream is opened successfully
+if not cap.isOpened():
+    print("Error: Could not open camera.")
+    GPIO.cleanup()
+    exit(1)
+
 # CSV file setup (append mode)
 csv_file = "hornet_tracking.csv"
+
 
 # Ensure the CSV file has a header if it doesn't exist
 if not os.path.exists(csv_file) or os.path.getsize(csv_file) == 0:
@@ -31,16 +56,23 @@ detected_markings = []
 last_detection_time = time.time()
 NO_DETECTION_THRESHOLD = 3  # Store data if no detection for 3 seconds
 
+
+lightFlashed = False
 # Continuous detection loop
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
+    if not lightFlashed:
+        flash_light()
+        lightFlashed = True
 
     # Perform object tracking
     results = model.track(frame, conf=0.3, max_det=1, persist=True)
 
     if results[0].boxes:
+
+
         last_detection_time = time.time()  # Reset timer since we detected something
         switchRelay(True)  # Turn the relay on
 
@@ -125,3 +157,4 @@ while cap.isOpened():
             last_detection_time = time.time()  # Reset timer
 
 cap.release()
+GPIO.cleanup()  # Clean up GPIO settings
