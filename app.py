@@ -94,37 +94,30 @@ while cap.isOpened():
             center_region = frame[center_y1:center_y2, center_x1:center_x2]
 
             if center_region.size > 0:
-                # Convert to HSV for better color detection
+                # Convert to HSV for accurate color detection
                 hsv_center = cv2.cvtColor(center_region, cv2.COLOR_BGR2HSV)
 
-                # Define RED, BLUE, and GREEN color ranges in HSV
-                red_lower1, red_upper1 = np.array([0, 100, 100]), np.array([10, 255, 255])
-                red_lower2, red_upper2 = np.array([160, 100, 100]), np.array([180, 255, 255])
-                blue_lower, blue_upper = np.array([90, 100, 100]), np.array([140, 255, 255])
-                green_lower, green_upper = np.array([35, 100, 100]), np.array([85, 255, 255])
-
-                # Create masks for each color
-                red_mask = cv2.inRange(hsv_center, red_lower1, red_upper1) + cv2.inRange(hsv_center, red_lower2, red_upper2)
-                blue_mask = cv2.inRange(hsv_center, blue_lower, blue_upper)
-                green_mask = cv2.inRange(hsv_center, green_lower, green_upper)
+                # Define HSV color ranges for Red, Blue, Green
+                color_ranges = {
+                    "Red": [(0, 100, 100), (10, 255, 255), (160, 100, 100), (180, 255, 255)],
+                    "Blue": [(90, 100, 100), (140, 255, 255)],
+                    "Green": [(35, 100, 100), (85, 255, 255)]
+                }
 
                 # Count pixels for each color
-                red_count = np.count_nonzero(red_mask)
-                blue_count = np.count_nonzero(blue_mask)
-                green_count = np.count_nonzero(green_mask)
+                color_counts = {}
+                for color, ranges in color_ranges.items():
+                    mask = sum(cv2.inRange(hsv_center, np.array(ranges[i]), np.array(ranges[i + 1])) for i in range(0, len(ranges), 2))
+                    color_counts[color] = np.count_nonzero(mask)
 
-                # Determine dominant marking color
-                color_label = "Unknown"
-                if red_count > blue_count and red_count > green_count:
-                    color_label = "Red"
-                elif blue_count > red_count and blue_count > green_count:
-                    color_label = "Blue"
-                elif green_count > red_count and green_count > blue_count:
-                    color_label = "Green"
+                # Determine the dominant color or mark as Unmarked
+                if all(count < 100 for count in color_counts.values()):
+                    color_label = "Unmarked"
+                else:
+                    color_label = max(color_counts, key=color_counts.get)
 
-                # Store detected marking color
-                if color_label != "Unknown":
-                    detected_markings.append(color_label)
+                # Append detected color
+                detected_markings.append(color_label)
 
     # **Check if the hornet disappeared for X seconds**
     if time.time() - last_detection_time > NO_DETECTION_THRESHOLD:
@@ -144,8 +137,10 @@ while cap.isOpened():
             dy = end_y - start_y
             flight_angle = (math.degrees(math.atan2(dy, dx)) + 90) % 360
 
+            # When final detected color is Unmarked set isMarked to False
+            isMarked = True if final_marking != "Unmarked" else False
             # **Write data to DB**
-            saveHornetDetection(final_marking, flight_angle)
+            saveHornetDetection(final_marking, flight_angle, isMarked)
             print(f"\n[!] Hornet Event Stored in CSV")
             print(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
             print(f"Final Detected Marking Color: {final_marking}")
@@ -157,4 +152,4 @@ while cap.isOpened():
             last_detection_time = time.time()  # Reset timer
 
 cap.release()
-GPIO.cleanup()  # Clean up GPIO settings
+GPIO.cleanup() 

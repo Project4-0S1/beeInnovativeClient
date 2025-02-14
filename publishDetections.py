@@ -18,7 +18,7 @@ conn = sqlite3.connect("database.db")
 cursor = conn.cursor()
 
 # Fetch all detections
-cursor.execute("SELECT detectionTime, hornetId, direction FROM detection")
+cursor.execute("SELECT detectionTime, hornetId, direction, isMarked FROM detection")
 detections = cursor.fetchall()
 
 # Generate the mac address
@@ -30,7 +30,7 @@ for detection in detections:
     detection_time = datetime.strptime(detection[0], '%Y-%m-%d %H:%M:%S').isoformat()  # Convert to ISO format without 'Z' suffix
     detection_data = {
         "detectionTimeStamp": detection_time,
-        "isMarked": True,
+        "isMarked": False if detection[3] == 0 else True,
         "direction": detection[2],
         "hornetId": detection[1],
         "BeehiveId": mac_address
@@ -69,12 +69,13 @@ if detection_list:
     # Switch relay based on response status
     if response.status_code == 200:
         threading.Thread(target=switch_relay, args=(2,)).start()
+        # Clear the detection table
+        cursor.execute("DELETE FROM detection")
+        conn.commit()
     else:
         threading.Thread(target=switch_relay, args=(8,)).start()
 
-    # Clear the detection table
-    cursor.execute("DELETE FROM detection")
-    conn.commit()
+
 else:
     # No detections, switch the relay 3 times
     threading.Thread(target=switch_relay, args=(3,)).start()
