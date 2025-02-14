@@ -16,9 +16,13 @@ Before running the client, you must set up a virtual environment and install dep
    ```sh
    pip install -r /opt/beeInnovativeClient/requirements.txt
    ```
-4. **Run the client app**:  
+3. **Make the script start script executable**:  
    ```sh
-   python3 /opt/beeInnovativeClient/app.py
+   chmod +x ./start.sh
+   ```
+4. **Run the client app via the start script**:  
+   ```sh
+   /opt/beeInnovativeClient/start.sh
    ```
 
 ---
