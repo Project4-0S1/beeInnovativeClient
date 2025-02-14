@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import math
 import time
-import csv
 from ultralytics import YOLO
 import os
 import RPi.GPIO as GPIO
@@ -40,15 +39,6 @@ if not cap.isOpened():
     GPIO.cleanup()
     exit(1)
 
-# CSV file setup (append mode)
-csv_file = "hornet_tracking.csv"
-
-
-# Ensure the CSV file has a header if it doesn't exist
-if not os.path.exists(csv_file) or os.path.getsize(csv_file) == 0:
-    with open(csv_file, mode='a', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Timestamp", "Flight Direction (°)", "Marking Color"])
 
 # Tracking & detection storage
 tracked_positions = []
@@ -141,7 +131,7 @@ while cap.isOpened():
             isMarked = True if final_marking != "Unmarked" else False
             # **Write data to DB**
             saveHornetDetection(final_marking, flight_angle, isMarked)
-            print(f"\n[!] Hornet Event Stored in CSV")
+            print(f"\n[!] Hornet Event Stored in Local Database")
             print(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
             print(f"Final Detected Marking Color: {final_marking}")
             print(f"Final Flight Direction: {flight_angle:.2f}°")
